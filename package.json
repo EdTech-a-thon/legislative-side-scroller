@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 8000",
     "build": "vite build",
-    "check": "svelte-check --tsconfig ./tsconfig.json"
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "extract:civics": "node scripts/extract-civics-questions.mjs",
+    "update:officeholders": "node scripts/update-officeholders.mjs"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "latest",

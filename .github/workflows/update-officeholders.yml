@@ -1,0 +1,28 @@
+name: Update Current Officeholders
+
+on:
+  schedule:
+    # GitHub Actions schedules use UTC. These run on the requested calendar dates.
+    - cron: '0 12 28 1 *'
+    - cron: '0 12 28 8 *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun run update:officeholders
+      - run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "Capitol Hill Crawler updater"
+          git config user.email "actions@github.com"
+          git add src/officeholders.ts
+          git commit -m "Update current officeholder data"
+          git push
