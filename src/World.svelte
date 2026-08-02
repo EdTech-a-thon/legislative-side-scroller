@@ -123,16 +123,16 @@
       // Dialog buttons can retain focus after closing. Only text-entry controls should
       // suppress map movement; buttons must not trap the player in place.
       if (target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA' || target?.tagName === 'SELECT') return;
-      if (event.key === 'ArrowLeft') { event.preventDefault(); nudge(-1, 0); }
-      if (event.key === 'ArrowRight') { event.preventDefault(); nudge(1, 0); }
-      if (event.key === 'ArrowUp') { event.preventDefault(); nudge(0, -1); }
-      if (event.key === 'ArrowDown') { event.preventDefault(); nudge(0, 1); }
+      if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a') { event.preventDefault(); nudge(-1, 0); }
+      if (event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') { event.preventDefault(); nudge(1, 0); }
+      if (event.key === 'ArrowUp' || event.key.toLowerCase() === 'w') { event.preventDefault(); nudge(0, -1); }
+      if (event.key === 'ArrowDown' || event.key.toLowerCase() === 's') { event.preventDefault(); nudge(0, 1); }
       if (['e', 'E', 'Enter'].includes(event.key) && !paused) { event.preventDefault(); interact(); }
     };
     const keyup = (event: KeyboardEvent) => {
       // Always clear movement on release. A dialog input may have received keydown,
       // but focus can change before keyup when the dialog closes.
-      if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) { event.preventDefault(); setDirection(0, 0); }
+      if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'a', 'A', 's', 'S', 'd', 'D', 'w', 'W'].includes(event.key)) { event.preventDefault(); setDirection(0, 0); }
     };
     const clearDirection = () => setDirection(0, 0);
     // Capture keys before a previously focused dialog button can consume them.

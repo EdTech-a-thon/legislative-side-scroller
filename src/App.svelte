@@ -639,7 +639,24 @@ import { applyHouseVoteLedger, encounterModeFor, encounters, generateHouseVoteLe
       activeLevel = 'house';
       save();
     }
-    else { senateLocked = []; senateAttempts = {}; screen = 'senate'; activeLevel = 'senate'; }
+    else {
+      senateLocked = [];
+      senateAttempts = {};
+      senatePlayerX = 3100;
+      senatePlayerY = 920;
+      screen = 'senate';
+      activeLevel = 'senate';
+      save();
+    }
+  }
+
+  function returnToOverrideFinale() {
+    if (votes < 290 || senateVotes < 67) {
+      announcement = `Override support still needed: House ${votes}/290, Senate ${senateVotes}/67.`;
+      return;
+    }
+    screen = 'whiteHouse';
+    save();
   }
 
   function finishOverride() { overrideFinaleOpen = false; billBecameLaw = true; overrideActive = false; completionRoute = 'override'; completionMinutes = completionMinutes ?? minutes; ovalOfficeAccuracyBonus = 0; celebrationOpen = true; announcement = 'Congress overrode the veto. The bill is now law.'; save(); }
@@ -737,7 +754,7 @@ import { applyHouseVoteLedger, encounterModeFor, encounters, generateHouseVoteLe
     <header class="hud"><div class="brand"><span>CHC</span><div>CAPITOL HILL<strong>CRAWLER</strong></div></div><div class="bill-name"><span>SENATE FLOOR</span><strong>CONNECTED CLASSROOMS ACT</strong></div><div class="hud-actions"><button onclick={() => screen = 'rotunda'}>← ROTUNDA</button><button onclick={() => screen = 'subway'}>♢ CLOAKROOM</button><button onclick={() => { notebookTab = 'vocabulary'; notebookOpen = true; }}>? GUIDE</button><button onclick={() => { notebookTab = 'entries'; notebookOpen = true; }}>▤ NOTEBOOK <b>{notes.length}</b></button></div></header>
     <section class="vote-board"><div><span>{overrideActive ? 'SENATE OVERRIDE' : 'SENATE SUPPORT'}</span><strong>{senateVotes} <small>/ {overrideActive ? 67 : 60}</small></strong></div><div class="meter"><i style:width={`${Math.min(100, Math.round(senateVotes / (overrideActive ? 67 : 60) * 100))}%`}></i><span class="threshold">{overrideActive ? 67 : 60}</span></div><div class="inf"><span>INFLUENCE</span><strong>{influence} INF</strong></div></section>
     <SenateMap encounters={alignedSenateEncounters} completed={senateCompleted} locked={senateLocked} held={['eleanor-vance', 'corinne-vasquez', 'del-ashworth', 'priya-okafor-lin'].filter((id) => !resolvedHolds.includes(id))} playerSkinTone={playerSkinTone} playerPresentation={playerPresentation} playerX={senatePlayerX} playerY={senatePlayerY} leadershipOfficeClosed={abbonizioOfficeClosed} onmove={(x, y) => { senatePlayerX = x; senatePlayerY = y; }} oninteract={(encounter) => { if(gridlock && !['augustus-kane','lucia-marchetti'].includes(encounter.id)){announcement='Gridlock has stalled regular Senate meetings. Use the Cloakroom and Subway route to break the deadlock.';return;} if(['augustus-kane','lucia-marchetti'].includes(encounter.id)){if(!gridlock){announcement='These extreme leaders become an Overtime option if the Filibuster creates Gridlock. You can still scout them in the Cloakroom and Subway.';return;} screen='subway';return;} if(encounter.id==='eleanor-vance'&&!archiveBriefingRecovered){activeHoldId='eleanor-vance';return;} beginEncounter(encounter); }} onrotunda={() => screen='rotunda'} onarchive={() => { activeHoldId='eleanor-vance'; }} onovertime={() => screen='subway'} onprop={(prop) => { if (prop === 'leadership-office') { screen = 'office'; } else if (prop === 'leadership-office-locked') announcement = 'Sen. Abbonizio’s office is locked. The briefcase delivery is complete.'; else if (prop === 'senate-clerk') discoverNotebookEntry("Senate clerk's table"); else if (prop === 'senate-papers') discoverNotebookEntry('Senate floor papers'); else if (prop === 'senate-ledger') discoverNotebookEntry('Senate vote ledger'); else if (prop === 'senate-staff') announcement = 'A floor staffer points you toward the Senate rules board and reminds you to prepare before a hard conversation.'; else announcement = 'A Senate page shares the day’s schedule and suggests checking the Cloakrooms for staff contacts.'; }} />
-    <footer class="statusbar"><div><span>FILIBUSTER</span><strong class:ready={senateVotes >= 50}>{gridlock ? 'Gridlock · Subway route open' : filibusterResolved ? 'Resolved' : senateVotes >= 50 ? 'Gauntlet ready' : 'Build support to 50'}</strong></div><p>{gridlock ? 'Use the Cloakroom and Subway route to break Gridlock.' : `${senateEncounters.length - senateCompleted.length} Senate leaders remain in this chamber.`}</p><button class="overtime-button" disabled={!gridlock} onclick={() => screen = 'subway'}>SUBWAY</button></footer>
+    <footer class="statusbar"><div><span>FILIBUSTER</span><strong class:ready={senateVotes >= 50}>{gridlock ? 'Gridlock · Subway route open' : filibusterResolved ? 'Resolved' : senateVotes >= 50 ? 'Gauntlet ready' : 'Build support to 50'}</strong></div><p>{overrideActive ? `Veto override: ${senateVotes} / 67 Senate votes. Return to the White House when both chambers are ready.` : gridlock ? 'Use the Cloakroom and Subway route to break Gridlock.' : `${senateEncounters.length - senateCompleted.length} Senate leaders remain in this chamber.`}</p>{#if overrideActive && votes >= 290 && senateVotes >= 67}<button class="overtime-button" onclick={returnToOverrideFinale}>WHITE HOUSE</button>{:else}<button class="overtime-button" disabled={!gridlock} onclick={() => screen = 'subway'}>SUBWAY</button>{/if}</footer>
   </main>
 {:else}
   <main class="game-shell">
@@ -756,7 +773,7 @@ import { applyHouseVoteLedger, encounterModeFor, encounters, generateHouseVoteLe
 
     <footer class="statusbar">
       <div><span>COMMITTEE</span><button class:ready={committeeStatus !== 'Not started'} disabled={committeeStatus === 'Not started'} onclick={openCommittee}>{committeeStatus}</button></div>
-      <p>{completed.length === 0 ? 'Find representatives with a gold marker and build your coalition.' : `${encounters.length - completed.length - locked.length} conversations remain on this floor.`}</p>
+      <p>{overrideActive ? `Veto override: ${votes} / 290 House votes. Every leader has one final chance to support the bill.` : completed.length === 0 ? 'Find representatives with a gold marker and build your coalition.' : `${encounters.length - completed.length - locked.length} conversations remain on this floor.`}</p>
       <span>AUTOSAVE ON</span>
     </footer>
   </main>
