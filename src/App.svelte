@@ -626,7 +626,19 @@ import { applyHouseVoteLedger, encounterModeFor, encounters, generateHouseVoteLe
   function continueExploring() { celebrationOpen = false; screen = 'dc'; save(); }
   function returnToCongress() {
     overrideOpen = false;
-    if (votes < 290) { locked = []; attempts = {}; screen = 'game'; activeLevel = 'house'; }
+    if (votes < 290) {
+      locked = [];
+      attempts = {};
+      // The override route can be opened from the White House or D.C., so do not
+      // reuse a saved House coordinate that may be outside the chamber walkways.
+      playerX = 3000;
+      playerY = 900;
+      houseInteractionBlocked = false;
+      mapRoom = null;
+      screen = 'game';
+      activeLevel = 'house';
+      save();
+    }
     else { senateLocked = []; senateAttempts = {}; screen = 'senate'; activeLevel = 'senate'; }
   }
 
