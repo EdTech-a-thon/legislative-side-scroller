@@ -46,7 +46,7 @@
 <div class="modal-backdrop">
   <dialog class="ben-tutorial" open aria-labelledby="ben-title">
     <header>
-      <Portrait character="venello" initials="BV" mood={page === 0 ? 'pleased' : 'thoughtful'} />
+      <Portrait character="venello" name="Mr. Ben Venello" initials="BV" mood={page === 0 ? 'welcoming' : page === 7 ? 'encouraging' : 'thoughtful'} />
       <div><p>HOUSE MENTOR · MR. BEN VENELLO</p><h2 id="ben-title">{current.title}</h2></div>
     </header>
     <div class="tutorial-copy"><p>{current.text.replace('{name}', playerName)}</p></div>
