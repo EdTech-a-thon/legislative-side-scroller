@@ -1,21 +1,4 @@
 <script lang="ts">
-  import abnerConcerned from '../abner-mendoza-concerned.png';
-  import abnerNeutral from '../abner-mendoza-neutral.png';
-  import abnerPleased from '../abner-mendoza-pleased.png';
-  import abnerThoughtful from '../abner-mendoza-thoughtful.png';
-  import benConcerned from '../ben-venello-concerned.png';
-  import benEncouraging from '../ben-venello-encouraging.png';
-  import benThoughtful from '../ben-venello-thoughtful.png';
-  import benWelcoming from '../ben-venello-welcoming.png';
-  import suttonConcerned from '../sutton-disantis-concerned.png';
-  import suttonExcited from '../sutton-disantis-excited.png';
-  import suttonNeutral from '../sutton-disantis-neutral.png';
-  import suttonPleased from '../sutton-disantis-pleased.png';
-  import wrenConcerned from '../wren-castellano-concerned.png';
-  import wrenNeutral from '../wren-castellano-neutral.png';
-  import wrenPleased from '../wren-castellano-pleased.png';
-  import wrenThoughtful from '../wren-castellano-thoughtful.png';
-
   type PortraitMood = 'neutral' | 'pleased' | 'thoughtful' | 'concerned' | 'welcoming' | 'encouraging' | 'excited';
   let { character, name = '', mood = 'neutral', initials, skinTone, presentation }: { character: string; name?: string; mood?: PortraitMood; initials: string; skinTone?: string; presentation?: 'female' | 'male' } = $props();
   const styles: Record<string, string> = {
@@ -30,10 +13,18 @@
     president: {
       neutral: '/assets/portraits/president-disantis-neutral.png', pleased: '/assets/portraits/president-disantis-pleased.png', thoughtful: '/assets/portraits/president-disantis-thoughtful.png', concerned: '/assets/portraits/president-disantis-concerned.png'
     },
-    sutton: { neutral: suttonNeutral, pleased: suttonPleased, concerned: suttonConcerned, excited: suttonExcited },
-    venello: { welcoming: benWelcoming, encouraging: benEncouraging, thoughtful: benThoughtful, concerned: benConcerned },
-    wren: { neutral: wrenNeutral, pleased: wrenPleased, thoughtful: wrenThoughtful, concerned: wrenConcerned },
-    abner: { neutral: abnerNeutral, pleased: abnerPleased, thoughtful: abnerThoughtful, concerned: abnerConcerned }
+    sutton: {
+      neutral: '/assets/portraits/sutton-disantis-neutral.png', pleased: '/assets/portraits/sutton-disantis-pleased.png', concerned: '/assets/portraits/sutton-disantis-concerned.png', excited: '/assets/portraits/sutton-disantis-excited.png'
+    },
+    venello: {
+      welcoming: '/assets/portraits/ben-venello-welcoming.png', encouraging: '/assets/portraits/ben-venello-encouraging.png', thoughtful: '/assets/portraits/ben-venello-thoughtful.png', concerned: '/assets/portraits/ben-venello-concerned.png'
+    },
+    wren: {
+      neutral: '/assets/portraits/wren-castellano-neutral.png', pleased: '/assets/portraits/wren-castellano-pleased.png', thoughtful: '/assets/portraits/wren-castellano-thoughtful.png', concerned: '/assets/portraits/wren-castellano-concerned.png'
+    },
+    abner: {
+      neutral: '/assets/portraits/abner-mendoza-neutral.png', pleased: '/assets/portraits/abner-mendoza-pleased.png', thoughtful: '/assets/portraits/abner-mendoza-thoughtful.png', concerned: '/assets/portraits/abner-mendoza-concerned.png'
+    }
   };
   let named = $derived(character === 'npc' ? (name.toLowerCase().includes('wren')?'wren':name.toLowerCase().includes('sterling')?'sterling':name.toLowerCase().includes('diane')?'diane':name.toLowerCase().includes('bracewell')?'tom':name.toLowerCase().includes('marcus')?'marcus':name.toLowerCase().includes('eleanor')?'eleanor':name.toLowerCase().includes('kane')?'kane':name.toLowerCase().includes('marchetti')?'lucia':'npc') : character);
   let portraitStyle = $derived(`${styles[named] ?? styles.npc}${character === 'player' && skinTone ? `;--skin:${skinTone}` : ''}${character === 'player' && presentation ? `;--hair:${presentation === 'male' ? '#2c2022' : '#5a2e38'}` : ''}`);
