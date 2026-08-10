@@ -1,5 +1,6 @@
 <script lang="ts">
   import homeArtwork from '../Capitol Hill Crawler Home.png';
+  import SiteFooter from './SiteFooter.svelte';
 
   let { canContinue, hasCertificate, onstart, oncontinue, oncertificate, oncredits }: { canContinue: boolean; hasCertificate: boolean; onstart: () => void; oncontinue: () => void; oncertificate: () => void; oncredits: () => void } = $props();
 </script>
@@ -15,4 +16,5 @@
   {#if hasCertificate}<button class="text-button completion-link" onclick={oncertificate}>VIEW LAST COMPLETION RECORD</button>{/if}
   <button class="text-button asset-link" onclick={oncredits}>ASSET CREDITS</button>
   <p class="controls-hint">MOVE WITH ARROW KEYS · PRESS E TO TALK</p>
+  <SiteFooter />
 </main>
