@@ -152,7 +152,7 @@ Before assigning the game to a class, test this short path:
 
 | Issue | Suggested response |
 | --- | --- |
-| Student cannot move | Click the game area, then use arrow keys or WASD. Check whether a dialogue or Notebook window is open. |
+| Student cannot move | Click the game area, then use the arrow keys. Check whether a dialogue or Notebook window is open. |
 | Student cannot type an answer | Click inside the answer field. Movement keys do not activate while an input field has focus. |
 | A current-official answer does not work | Check the Last Verified date. If data is unavailable, allow the question to swap rather than marking the student wrong. |
 | Student used the wrong name | Start a new campaign before significant progress, or use the existing name if it is still identifiable for the completion record. |
