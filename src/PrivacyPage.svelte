@@ -16,7 +16,7 @@
     </p>
     <p>
       Questions or concerns? Email
-      <a href="mailto:directors@edtechathon.com?subject=capitolhillcrawler%20privacy">directors@edtechathon.com</a>.
+      <a href="mailto:support@capitolcrawler.com?subject=capitolhillcrawler%20privacy">support@capitolcrawler.com</a>.
     </p>
   </section>
 </SitePage>

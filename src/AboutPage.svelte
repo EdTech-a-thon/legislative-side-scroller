@@ -41,8 +41,8 @@
       We'd love to hear from you. Tell us what's working, what's not, or pitch us an idea for a tool
       you wish existed. We're here to help.
     </p>
-    <a class="primary site-cta" href="mailto:directors@edtechathon.com?subject=capitolhillcrawler%20feedback">
-      Email directors@edtechathon.com
+    <a class="primary site-cta" href="mailto:support@capitolcrawler.com?subject=capitolhillcrawler%20feedback">
+      Email support@capitolcrawler.com
     </a>
   </section>
 </SitePage>
