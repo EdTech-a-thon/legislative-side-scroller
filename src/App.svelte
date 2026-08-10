@@ -40,6 +40,9 @@
   import Notebook from './Notebook.svelte';
   import TitleScreen from './TitleScreen.svelte';
   import World from './World.svelte';
+  import AboutPage from './AboutPage.svelte';
+  import PrivacyPage from './PrivacyPage.svelte';
+  import { route } from './route.svelte';
   import { civicsQuestionById, civicsStudyNotes, type CivicsCategory } from './civics-questions';
   import { isSupportedDynamicQuestion } from './jurisdictions';
   import { validateSupportedDynamicAnswer } from './civics-validation';
@@ -626,8 +629,37 @@ import { applyHouseVoteLedger, encounterModeFor, encounters, generateHouseVoteLe
   function continueExploring() { celebrationOpen = false; screen = 'dc'; save(); }
   function returnToCongress() {
     overrideOpen = false;
-    if (votes < 290) { locked = []; attempts = {}; screen = 'game'; activeLevel = 'house'; }
-    else { senateLocked = []; senateAttempts = {}; screen = 'senate'; activeLevel = 'senate'; }
+    if (votes < 290) {
+      locked = [];
+      attempts = {};
+      // The override route can be opened from the White House or D.C., so do not
+      // reuse a saved House coordinate that may be outside the chamber walkways.
+      playerX = 3000;
+      playerY = 900;
+      houseInteractionBlocked = false;
+      mapRoom = null;
+      screen = 'game';
+      activeLevel = 'house';
+      save();
+    }
+    else {
+      senateLocked = [];
+      senateAttempts = {};
+      senatePlayerX = 3100;
+      senatePlayerY = 920;
+      screen = 'senate';
+      activeLevel = 'senate';
+      save();
+    }
+  }
+
+  function returnToOverrideFinale() {
+    if (votes < 290 || senateVotes < 67) {
+      announcement = `Override support still needed: House ${votes}/290, Senate ${senateVotes}/67.`;
+      return;
+    }
+    screen = 'whiteHouse';
+    save();
   }
 
   function finishOverride() { overrideFinaleOpen = false; billBecameLaw = true; overrideActive = false; completionRoute = 'override'; completionMinutes = completionMinutes ?? minutes; ovalOfficeAccuracyBonus = 0; celebrationOpen = true; announcement = 'Congress overrode the veto. The bill is now law.'; save(); }
@@ -706,91 +738,97 @@ import { applyHouseVoteLedger, encounterModeFor, encounters, generateHouseVoteLe
   }
 </script>
 
-{#if screen === 'title'}
-  <TitleScreen canContinue={hasSave} hasCertificate={Boolean(lastCompletion)} onstart={newGame} oncontinue={continueGame} oncertificate={() => { if (lastCompletion) certificateOpen = true; }} oncredits={() => assetCreditsOpen = true} />
-{:else if screen === 'rotunda'}
-  <RotundaMap housePassed={votes >= requiredVotes} onhouse={enterHouse} onshop={() => shopOpen = true} onbill={() => billScrollOpen = true} onnotebook={() => { notebookTab = 'entries'; notebookOpen = true; }} onguide={() => { notebookTab = 'vocabulary'; notebookOpen = true; }} onprofile={openProfile} ondc={() => screen = 'dc'} onsenate={enterSenate} ondiscover={() => discoverNotebookEntry('Rotunda Civics Exhibit')} />
-  {:else if screen === 'dc'}
-    <DcOverworld {minutes} whiteHouseOpen={whiteHouseUnlocked} notebookEntries={notes.length} onrotunda={() => screen='rotunda'} onwait={waitForNextPeriod} onspot={(spot) => landmarkCard = spot} />
-{:else if screen === 'whiteHouse'}
-  <WhiteHouse overrideReady={overrideActive && votes >= 290 && senateVotes >= 67} lincolnReady={notes.length >= 127 && !lincolnGhostComplete} onshop={() => shopOpen = true} onbill={() => billScrollOpen = true} onnotebook={() => notebookOpen = true} onreturn={() => screen = 'dc'} onovaloffice={enterOvalOffice} onlincoln={() => { announcement = 'Lincoln Memorial is now available as an optional stop on the D.C. map before you enter the Oval Office.'; screen = 'dc'; }} />
-{:else if screen === 'archive'}
-  <ArchiveBasement recovered={archiveBriefingRecovered} onrecover={recoverArchiveBriefing} onreturn={returnFromArchive} />
-{:else if screen === 'office'}
-  <LeadershipOffice recovered={priyaBriefcaseRecovered} onrecover={recoverLucianaBriefcase} onreturn={returnFromOffice} />
-   {:else if screen === 'subway'}
-   <SubwayOvertimeMap {gridlock} completedNodes={rogueNodes} superPacAvailable={inventory.superPac > 0} onnode={openRogueNode} onusesuperpac={useSuperPac} onscout={(id) => { scoutLeaderId = id; }} onreturn={returnFromSubway} />
-{:else if screen === 'senate'}
-  <main class="game-shell senate-shell">
-    <header class="hud"><div class="brand"><span>CHC</span><div>CAPITOL HILL<strong>CRAWLER</strong></div></div><div class="bill-name"><span>SENATE FLOOR</span><strong>CONNECTED CLASSROOMS ACT</strong></div><div class="hud-actions"><button onclick={() => screen = 'rotunda'}>← ROTUNDA</button><button onclick={() => screen = 'subway'}>♢ CLOAKROOM</button><button onclick={() => { notebookTab = 'vocabulary'; notebookOpen = true; }}>? GUIDE</button><button onclick={() => { notebookTab = 'entries'; notebookOpen = true; }}>▤ NOTEBOOK <b>{notes.length}</b></button></div></header>
-    <section class="vote-board"><div><span>{overrideActive ? 'SENATE OVERRIDE' : 'SENATE SUPPORT'}</span><strong>{senateVotes} <small>/ {overrideActive ? 67 : 60}</small></strong></div><div class="meter"><i style:width={`${Math.min(100, Math.round(senateVotes / (overrideActive ? 67 : 60) * 100))}%`}></i><span class="threshold">{overrideActive ? 67 : 60}</span></div><div class="inf"><span>INFLUENCE</span><strong>{influence} INF</strong></div></section>
-    <SenateMap encounters={alignedSenateEncounters} completed={senateCompleted} locked={senateLocked} held={['eleanor-vance', 'corinne-vasquez', 'del-ashworth', 'priya-okafor-lin'].filter((id) => !resolvedHolds.includes(id))} playerSkinTone={playerSkinTone} playerPresentation={playerPresentation} playerX={senatePlayerX} playerY={senatePlayerY} leadershipOfficeClosed={abbonizioOfficeClosed} onmove={(x, y) => { senatePlayerX = x; senatePlayerY = y; }} oninteract={(encounter) => { if(gridlock && !['augustus-kane','lucia-marchetti'].includes(encounter.id)){announcement='Gridlock has stalled regular Senate meetings. Use the Cloakroom and Subway route to break the deadlock.';return;} if(['augustus-kane','lucia-marchetti'].includes(encounter.id)){if(!gridlock){announcement='These extreme leaders become an Overtime option if the Filibuster creates Gridlock. You can still scout them in the Cloakroom and Subway.';return;} screen='subway';return;} if(encounter.id==='eleanor-vance'&&!archiveBriefingRecovered){activeHoldId='eleanor-vance';return;} beginEncounter(encounter); }} onrotunda={() => screen='rotunda'} onarchive={() => { activeHoldId='eleanor-vance'; }} onovertime={() => screen='subway'} onprop={(prop) => { if (prop === 'leadership-office') { screen = 'office'; } else if (prop === 'leadership-office-locked') announcement = 'Sen. Abbonizio’s office is locked. The briefcase delivery is complete.'; else if (prop === 'senate-clerk') discoverNotebookEntry("Senate clerk's table"); else if (prop === 'senate-papers') discoverNotebookEntry('Senate floor papers'); else if (prop === 'senate-ledger') discoverNotebookEntry('Senate vote ledger'); else if (prop === 'senate-staff') announcement = 'A floor staffer points you toward the Senate rules board and reminds you to prepare before a hard conversation.'; else announcement = 'A Senate page shares the day’s schedule and suggests checking the Cloakrooms for staff contacts.'; }} />
-    <footer class="statusbar"><div><span>FILIBUSTER</span><strong class:ready={senateVotes >= 50}>{gridlock ? 'Gridlock · Subway route open' : filibusterResolved ? 'Resolved' : senateVotes >= 50 ? 'Gauntlet ready' : 'Build support to 50'}</strong></div><p>{gridlock ? 'Use the Cloakroom and Subway route to break Gridlock.' : `${senateEncounters.length - senateCompleted.length} Senate leaders remain in this chamber.`}</p><button class="overtime-button" disabled={!gridlock} onclick={() => screen = 'subway'}>SUBWAY</button></footer>
-  </main>
+{#if route() === '/about'}
+  <AboutPage />
+{:else if route() === '/privacy'}
+  <PrivacyPage />
 {:else}
-  <main class="game-shell">
-    <header class="hud">
-      <div class="brand"><span>CHC</span><div>CAPITOL HILL<strong>CRAWLER</strong></div></div>
-      <div class="bill-name"><span>H.R. 218</span><strong>CONNECTED SCHOOLS ACT</strong></div>
-        <div class="hud-actions"><button onclick={() => houseContactOpen = true}>☏ LEADERS</button><button onclick={() => billScrollOpen = true}>▧ BILL</button><button onclick={() => { notebookTab = 'vocabulary'; notebookOpen = true; }}>? GUIDE</button><button onclick={() => { notebookTab = 'entries'; notebookOpen = true; }}>▤ NOTEBOOK <b>{notes.length}</b></button><button onclick={() => shopOpen = true}>◈ SHOP</button><button aria-label="Reset game" onclick={reset}>⚙</button></div>
-    </header>
-    <section class="vote-board">
-      <div><span>{overrideActive ? 'HOUSE OVERRIDE' : 'HOUSE SUPPORT'}</span><strong>{votes} <small>/ {overrideActive ? 290 : requiredVotes}</small></strong>{#if votes >= 290}<em>VETO-PROOF</em>{:else if votes >= requiredVotes}<em>SENATE UNLOCKED</em>{/if}</div>
-      <div class="meter"><i style:width={`${overrideActive ? Math.min(100, Math.round(votes / 290 * 100)) : progress}%`}></i><span class="threshold">{overrideActive ? 290 : 218}</span></div>
-      <div class="inf"><span>INFLUENCE</span><strong>{influence} INF</strong></div>
-    </section>
+  {#if screen === 'title'}
+    <TitleScreen canContinue={hasSave} hasCertificate={Boolean(lastCompletion)} onstart={newGame} oncontinue={continueGame} oncertificate={() => { if (lastCompletion) certificateOpen = true; }} oncredits={() => assetCreditsOpen = true} />
+  {:else if screen === 'rotunda'}
+    <RotundaMap housePassed={votes >= requiredVotes} onhouse={enterHouse} onshop={() => shopOpen = true} onbill={() => billScrollOpen = true} onnotebook={() => { notebookTab = 'entries'; notebookOpen = true; }} onguide={() => { notebookTab = 'vocabulary'; notebookOpen = true; }} onprofile={openProfile} ondc={() => screen = 'dc'} onsenate={enterSenate} ondiscover={() => discoverNotebookEntry('Rotunda Civics Exhibit')} />
+    {:else if screen === 'dc'}
+      <DcOverworld {minutes} whiteHouseOpen={whiteHouseUnlocked} notebookEntries={notes.length} onrotunda={() => screen='rotunda'} onwait={waitForNextPeriod} onspot={(spot) => landmarkCard = spot} />
+  {:else if screen === 'whiteHouse'}
+    <WhiteHouse overrideReady={overrideActive && votes >= 290 && senateVotes >= 67} lincolnReady={notes.length >= 127 && !lincolnGhostComplete} onshop={() => shopOpen = true} onbill={() => billScrollOpen = true} onnotebook={() => notebookOpen = true} onreturn={() => screen = 'dc'} onovaloffice={enterOvalOffice} onlincoln={() => { announcement = 'Lincoln Memorial is now available as an optional stop on the D.C. map before you enter the Oval Office.'; screen = 'dc'; }} />
+  {:else if screen === 'archive'}
+    <ArchiveBasement recovered={archiveBriefingRecovered} onrecover={recoverArchiveBriefing} onreturn={returnFromArchive} />
+  {:else if screen === 'office'}
+    <LeadershipOffice recovered={priyaBriefcaseRecovered} onrecover={recoverLucianaBriefcase} onreturn={returnFromOffice} />
+     {:else if screen === 'subway'}
+     <SubwayOvertimeMap {gridlock} completedNodes={rogueNodes} superPacAvailable={inventory.superPac > 0} onnode={openRogueNode} onusesuperpac={useSuperPac} onscout={(id) => { scoutLeaderId = id; }} onreturn={returnFromSubway} />
+  {:else if screen === 'senate'}
+    <main class="game-shell senate-shell">
+      <header class="hud"><div class="brand"><span>CHC</span><div>CAPITOL HILL<strong>CRAWLER</strong></div></div><div class="bill-name"><span>SENATE FLOOR</span><strong>CONNECTED CLASSROOMS ACT</strong></div><div class="hud-actions"><button onclick={() => screen = 'rotunda'}>← ROTUNDA</button><button onclick={() => screen = 'subway'}>♢ CLOAKROOM</button><button onclick={() => { notebookTab = 'vocabulary'; notebookOpen = true; }}>? GUIDE</button><button onclick={() => { notebookTab = 'entries'; notebookOpen = true; }}>▤ NOTEBOOK <b>{notes.length}</b></button></div></header>
+      <section class="vote-board"><div><span>{overrideActive ? 'SENATE OVERRIDE' : 'SENATE SUPPORT'}</span><strong>{senateVotes} <small>/ {overrideActive ? 67 : 60}</small></strong></div><div class="meter"><i style:width={`${Math.min(100, Math.round(senateVotes / (overrideActive ? 67 : 60) * 100))}%`}></i><span class="threshold">{overrideActive ? 67 : 60}</span></div><div class="inf"><span>INFLUENCE</span><strong>{influence} INF</strong></div></section>
+      <SenateMap encounters={alignedSenateEncounters} completed={senateCompleted} locked={senateLocked} held={['eleanor-vance', 'corinne-vasquez', 'del-ashworth', 'priya-okafor-lin'].filter((id) => !resolvedHolds.includes(id))} playerSkinTone={playerSkinTone} playerPresentation={playerPresentation} playerX={senatePlayerX} playerY={senatePlayerY} leadershipOfficeClosed={abbonizioOfficeClosed} onmove={(x, y) => { senatePlayerX = x; senatePlayerY = y; }} oninteract={(encounter) => { if(gridlock && !['augustus-kane','lucia-marchetti'].includes(encounter.id)){announcement='Gridlock has stalled regular Senate meetings. Use the Cloakroom and Subway route to break the deadlock.';return;} if(['augustus-kane','lucia-marchetti'].includes(encounter.id)){if(!gridlock){announcement='These extreme leaders become an Overtime option if the Filibuster creates Gridlock. You can still scout them in the Cloakroom and Subway.';return;} screen='subway';return;} if(encounter.id==='eleanor-vance'&&!archiveBriefingRecovered){activeHoldId='eleanor-vance';return;} beginEncounter(encounter); }} onrotunda={() => screen='rotunda'} onarchive={() => { activeHoldId='eleanor-vance'; }} onovertime={() => screen='subway'} onprop={(prop) => { if (prop === 'leadership-office') { screen = 'office'; } else if (prop === 'leadership-office-locked') announcement = 'Sen. Abbonizio’s office is locked. The briefcase delivery is complete.'; else if (prop === 'senate-clerk') discoverNotebookEntry("Senate clerk's table"); else if (prop === 'senate-papers') discoverNotebookEntry('Senate floor papers'); else if (prop === 'senate-ledger') discoverNotebookEntry('Senate vote ledger'); else if (prop === 'senate-staff') announcement = 'A floor staffer points you toward the Senate rules board and reminds you to prepare before a hard conversation.'; else announcement = 'A Senate page shares the day’s schedule and suggests checking the Cloakrooms for staff contacts.'; }} />
+      <footer class="statusbar"><div><span>FILIBUSTER</span><strong class:ready={senateVotes >= 50}>{gridlock ? 'Gridlock · Subway route open' : filibusterResolved ? 'Resolved' : senateVotes >= 50 ? 'Gauntlet ready' : 'Build support to 50'}</strong></div><p>{overrideActive ? `Veto override: ${senateVotes} / 67 Senate votes. Return to the White House when both chambers are ready.` : gridlock ? 'Use the Cloakroom and Subway route to break Gridlock.' : `${senateEncounters.length - senateCompleted.length} Senate leaders remain in this chamber.`}</p>{#if overrideActive && votes >= 290 && senateVotes >= 67}<button class="overtime-button" onclick={returnToOverrideFinale}>WHITE HOUSE</button>{:else}<button class="overtime-button" disabled={!gridlock} onclick={() => screen = 'subway'}>SUBWAY</button>{/if}</footer>
+    </main>
+  {:else}
+    <main class="game-shell">
+      <header class="hud">
+        <div class="brand"><span>CHC</span><div>CAPITOL HILL<strong>CRAWLER</strong></div></div>
+        <div class="bill-name"><span>H.R. 218</span><strong>CONNECTED SCHOOLS ACT</strong></div>
+          <div class="hud-actions"><button onclick={() => houseContactOpen = true}>☏ LEADERS</button><button onclick={() => billScrollOpen = true}>▧ BILL</button><button onclick={() => { notebookTab = 'vocabulary'; notebookOpen = true; }}>? GUIDE</button><button onclick={() => { notebookTab = 'entries'; notebookOpen = true; }}>▤ NOTEBOOK <b>{notes.length}</b></button><button onclick={() => shopOpen = true}>◈ SHOP</button><button aria-label="Reset game" onclick={reset}>⚙</button></div>
+      </header>
+      <section class="vote-board">
+        <div><span>{overrideActive ? 'HOUSE OVERRIDE' : 'HOUSE SUPPORT'}</span><strong>{votes} <small>/ {overrideActive ? 290 : requiredVotes}</small></strong>{#if votes >= 290}<em>VETO-PROOF</em>{:else if votes >= requiredVotes}<em>SENATE UNLOCKED</em>{/if}</div>
+        <div class="meter"><i style:width={`${overrideActive ? Math.min(100, Math.round(votes / 290 * 100)) : progress}%`}></i><span class="threshold">{overrideActive ? 290 : 218}</span></div>
+        <div class="inf"><span>INFLUENCE</span><strong>{influence} INF</strong></div>
+      </section>
 
-    <World encounters={alignedHouseEncounters} {playerX} {playerY} playerSkinTone={playerSkinTone} playerPresentation={playerPresentation} {completed} {locked} paused={Boolean(active) || notebookOpen || showBrief || committeeAmbushOpen || committeeOpen || committeeStatus === 'Markup interrupted' || committeeStatus === 'Markup unlocked' || benTutorialOpen || Boolean(mapRoom)} interactionBlocked={houseInteractionBlocked} onmove={(x, y) => { playerX = x; playerY = y; houseInteractionBlocked = false; }} oninteract={startHouseEncounter} onzone={(zone) => { if (zone === 'house-papers') discoverNotebookEntry('House floor papers'); else if (zone === 'house-ledger') discoverNotebookEntry('House vote ledger'); else if (zone === 'house-briefing') discoverNotebookEntry('House briefing table'); else if (zone === 'rules-office') announcement = 'The Rules Counsel office is locked. A staffer is working behind the frosted glass.'; else if (zone === 'whip-office') announcement = 'The Whip Office is locked. A vote count is underway inside.'; else if (zone === 'budget-office') announcement = 'The Budget Staff office is locked. The papers inside may matter later.'; else useHouseZone(zone); }} />
+      <World encounters={alignedHouseEncounters} {playerX} {playerY} playerSkinTone={playerSkinTone} playerPresentation={playerPresentation} {completed} {locked} paused={Boolean(active) || notebookOpen || showBrief || committeeAmbushOpen || committeeOpen || committeeStatus === 'Markup interrupted' || committeeStatus === 'Markup unlocked' || benTutorialOpen || Boolean(mapRoom)} interactionBlocked={houseInteractionBlocked} onmove={(x, y) => { playerX = x; playerY = y; houseInteractionBlocked = false; }} oninteract={startHouseEncounter} onzone={(zone) => { if (zone === 'house-papers') discoverNotebookEntry('House floor papers'); else if (zone === 'house-ledger') discoverNotebookEntry('House vote ledger'); else if (zone === 'house-briefing') discoverNotebookEntry('House briefing table'); else if (zone === 'rules-office') announcement = 'The Rules Counsel office is locked. A staffer is working behind the frosted glass.'; else if (zone === 'whip-office') announcement = 'The Whip Office is locked. A vote count is underway inside.'; else if (zone === 'budget-office') announcement = 'The Budget Staff office is locked. The papers inside may matter later.'; else useHouseZone(zone); }} />
 
-    <footer class="statusbar">
-      <div><span>COMMITTEE</span><button class:ready={committeeStatus !== 'Not started'} disabled={committeeStatus === 'Not started'} onclick={openCommittee}>{committeeStatus}</button></div>
-      <p>{completed.length === 0 ? 'Find representatives with a gold marker and build your coalition.' : `${encounters.length - completed.length - locked.length} conversations remain on this floor.`}</p>
-      <span>AUTOSAVE ON</span>
-    </footer>
-  </main>
+      <footer class="statusbar">
+        <div><span>COMMITTEE</span><button class:ready={committeeStatus !== 'Not started'} disabled={committeeStatus === 'Not started'} onclick={openCommittee}>{committeeStatus}</button></div>
+        <p>{overrideActive ? `Veto override: ${votes} / 290 House votes. Every leader has one final chance to support the bill.` : completed.length === 0 ? 'Find representatives with a gold marker and build your coalition.' : `${encounters.length - completed.length - locked.length} conversations remain on this floor.`}</p>
+        <span>AUTOSAVE ON</span>
+      </footer>
+    </main>
+  {/if}
+
+  {#if showBrief && screen === 'game'}
+    <div class="modal-backdrop">
+      <dialog class="bill-brief" open aria-labelledby="brief-title">
+        <p class="eyebrow">YOUR FIRST BILL</p><h2 id="brief-title">THE CONNECTED<br />SCHOOLS ACT</h2>
+        <p>Improve reliable internet access, learning tools, and teacher support for public-school students.</p>
+        <div><span>STARTING COALITION</span><strong>0 VOTES</strong></div>
+        <div><span>NEEDED TO PASS</span><strong>218 VOTES</strong></div>
+        <p class="brief-note">Walk through the House chamber. Talk with coalition leaders and answer official U.S. civics questions to earn their support.</p>
+        <button class="primary" onclick={() => showBrief = false}>STEP ONTO THE FLOOR →</button>
+      </dialog>
+    </div>
+  {/if}
+
+  {#if active && activeQuestion}<EncounterPanel encounter={active} question={activeQuestion} attempt={((activeLevel === 'senate' ? senateAttempts : attempts)[active.id] ?? 0) + 1} {inventory} playerName={playerName} rapport={rapportScores[active.id] ?? 50} activeTrait={activeTraitFor(active.id)} alternativeTrait={alternativeTraitFor(active.id)} hasRapport={hasRapportPhase(active)} isExtreme={['augustus-kane', 'lucia-marchetti'].includes(active.id)} onrapport={updateRapport} rapportBonus={activeRapportBonus} {resolveDynamicAnswer} onskipdynamic={() => { if (activeQuestionId === 29) representativeLookupOpen = true; }} onuseitem={usePowerUp} oncomplete={resolveEncounter} onclose={() => { active = null; activeQuestionId = null; activeQuestionData = null; activeRapportBonus = 0; requestAnimationFrame(() => (document.activeElement as HTMLElement | null)?.blur()); }} />{/if}
+  {#if scoutTrainingOpen}<ScoutTraining leaderName="Rep. Priya Anand" oncomplete={() => { scoutTrainingSeen = true; scoutTargetId = 'priya-anand'; scoutTrainingOpen = false; announcement = 'Your scout has prepared you for Rep. Anand. Find more scouts around the Capitol for optional help.'; save(); }} />{/if}
+  {#if committeeAmbushOpen && committeeAmbushQuestionId !== null}<CommitteeAmbush question={civicsQuestionById.get(committeeAmbushQuestionId)!} oncomplete={finishCommitteeAmbush} />{/if}
+  {#if committeeOpen}<CommitteeDungeon questions={committeeQuestionIds.slice(1).map((id) => civicsQuestionById.get(id)!).filter(Boolean)} committeeVotes={houseLedger.committeeVotes} hasPowerUp={Object.values(inventory).some((count) => count > 0)} adaPrepared={committeeEased} rapport={committeeRapport} onstudy={() => discoverNotebookEntry('Committee reference shelf')} oncomplete={finishCommittee} />{/if}
+  {#if shopOpen}<RotundaShop {influence} {inventory} filibusterTriggered={senateVotes >= 50 || filibusterResolved} ownedQuestionIds={notebookQuestionIds} onbuyquestion={buyNotebookQuestion} onbuy={buyPowerUp} onclose={() => shopOpen = false} />{/if}
+  {#if billScrollOpen}<BillScroll {committeeStatus} approvedAmendments={committeeAmendments} onclose={() => billScrollOpen = false} />{/if}
+  {#if housePassageOpen}<HousePassage {votes} oncontinue={continueToRotunda} />{/if}
+  {#if benTutorialOpen}<BenTutorial playerName={playerName} oncomplete={finishBenTutorial} />{/if}
+  {#if filibusterOpen && !filibusterIntroSeen}<FilibusterIntro oncontinue={() => { filibusterIntroSeen = true; save(); }} />{/if}
+  {#if filibusterOpen && filibusterIntroSeen}<FilibusterGauntlet questions={filibusterQuestionIds.map((id) => civicsQuestionById.get(id)!).filter(Boolean)} oncomplete={finishFilibuster} />{/if}
+  {#if activeHoldId}<SenateHold leaderId={activeHoldId} notebookEntries={notes.length} newEntriesSinceContact={activeHoldId === 'del-ashworth' && delNotebookCountAtContact !== null ? Math.max(0, notebookQuestionIds.length - delNotebookCountAtContact) : 0} {influence} question={civicsQuestionById.get(senateQuestionIds().find((id) => !encounteredQuestionIds.includes(id)) ?? 73)!} onresolve={resolveHold} onoffice={() => { activeHoldId = null; screen = 'office'; }} onclose={() => activeHoldId = null} />{/if}
+  {#if clotureOpen}<ClotureTransition oncontinue={openWhiteHouse} />{/if}
+  {#if ovalOfficeOpen}<OvalOffice questions={ovalOfficeQuestionIds.map((id) => civicsQuestionById.get(id)!).filter(Boolean)} alignment={presidentAlignment} {inventory} onuseitem={usePowerUp} oncomplete={finishOvalOffice} />{/if}
+  {#if celebrationOpen}<BillCelebration playerScore={finalScore} notebookEntries={notes.length} correctAnswerPoints={correctAnswerPoints} {notebookEntryPoints} ovalBonus={ovalOfficeAccuracyBonus} {speedBonus} infBonus={Math.min(3200, influence * 3)} onlock={lockScore} onexplore={continueExploring} />{/if}
+  {#if overrideOpen}<VetoOverride houseVotes={votes} {senateVotes} onreturn={returnToCongress} />{/if}
+  {#if overrideFinaleOpen}<OverrideFinale oncomplete={finishOverride} />{/if}
+  {#if profileOpen}<StudentProfile initialCode={jurisdictionCode} initialCity={city} oncomplete={saveProfile} />{/if}
+  {#if certificateOpen && lastCompletion}<CompletionCertificate playerName={lastCompletion.playerName} route={lastCompletion.route} houseVotes={lastCompletion.houseVotes} senateVotes={lastCompletion.senateVotes} notebookEntries={lastCompletion.notebookEntries} influence={lastCompletion.influence} score={lastCompletion.score} oncontinue={() => { certificateOpen = false; screen = 'title'; }} />{/if}
+  {#if characterCreationOpen}<CharacterCreation oncomplete={finishCharacterCreation} />{/if}
+  {#if representativeLookupOpen}<RepresentativeLookup onskip={skipRepresentativeQuestion} onlookup={() => skipRepresentativeQuestion()} />{/if}
+  {#if assetCreditsOpen}<AssetCredits onclose={() => assetCreditsOpen = false} />{/if}
+  {#if houseContactOpen}<div class="modal-backdrop"><dialog class="leader-contact-panel" open aria-labelledby="leader-contact-title"><button class="close" aria-label="Close leader directory" onclick={() => houseContactOpen = false}>×</button><p class="eyebrow">HOUSE CONTACT LIST</p><h2 id="leader-contact-title">AVAILABLE LEADERS</h2><p>Select a leader to begin an encounter directly. This is a reliable alternative while the map interaction layer is being refined.</p><div class="leader-contact-list">{#each houseEncounters.filter((encounter) => !completed.includes(encounter.id) && !locked.includes(encounter.id)) as encounter}<button onclick={() => startHouseEncounter(encounter)}><b>{encounter.name}</b><span>{encounter.affiliation} · {encounter.votes} votes</span></button>{/each}</div></dialog></div>{/if}
+  {#if mapRoom}{@const roomScoutTargets = { 'west-caucus': 'priya-anand', 'east-caucus': 'selena-marsh', 'west-cloakroom': 'hank-delgado', 'east-cloakroom': 'naomi-cho' } as const}{@const targetId = roomScoutTargets[mapRoom.roomId]}<MapRoom {...mapRoom} discovered={Object.values(notebookSources).includes(mapRoom.source)} scoutAvailable={houseScoutTargets.includes(targetId)} ondiscover={discoverNotebookEntry} onscout={() => { if (!houseScoutTargets.includes(targetId)) { houseScoutTargets = [...houseScoutTargets, targetId]; announcement = `Scout intel logged for ${houseEncounters.find((encounter) => encounter.id === targetId)?.name}. Watch for what they value in the Rapport conversation.`; save(); } }} onreturn={() => returnFromHouseRoom(mapRoom!.roomId)} />{/if}
+  {#if scoutLeaderId}<ScoutLeader leaderId={scoutLeaderId} oncomplete={finishScouting} onclose={() => scoutLeaderId = null} />{/if}
+  {#if landmarkCard}<LandmarkCard landmark={landmarkCard} onclose={() => landmarkCard = null} oncontinue={() => { const spot = landmarkCard; landmarkCard = null; if(spot==='capitol'){screen='rotunda';} else if(spot==='white-house'){if(whiteHouseUnlocked)screen='whiteHouse';else announcement='The White House opens after Congress passes the bill.';} else if(spot==='monument'){if((Math.floor(minutes/60)%24>=20||Math.floor(minutes/60)%24<6)&&notes.length>=100&&(encounteredQuestionIds.includes(37)||notebookQuestionIds.includes(37)))washingtonGhostOpen=true;else discoverNotebookEntry('Washington Monument tourist board');} else if(spot==='reflecting'){discoverNotebookEntry('Reflecting Pool visitor guide');} else if(spot==='lincoln'){discoverNotebookEntry('Lincoln Memorial visitor guide');} else if(spot==='smithsonian'){discoverNotebookEntry('Smithsonian museum guide');} else if(spot==='library'){hearGhostWhisper('washington');} else if(spot==='court'){hearGhostWhisper('lincoln');} else if(spot==='duncan'){meetDuncan();} else if(spot==='tourists'){touristPanelOpen=true;} else if(spot==='cafe'||spot==='press'){if(Math.floor(minutes/60)%24>=20||Math.floor(minutes/60)%24<6)nightAlternatesOpen=true;else touristPanelOpen=true;} }} />{/if}
+  {#if touristPanelOpen}<TouristEncounters claimed={touristClaims} onclaim={claimTouristPack} onclose={() => touristPanelOpen = false} />{/if}
+  {#if nightAlternatesOpen}<DcNightAlternates {completed} onselect={beginNightAlternate} onclose={() => nightAlternatesOpen = false} />{/if}
+  {#if washingtonGhostOpen}<WashingtonGhost hasPriorKnowledge={encounteredQuestionIds.includes(37) || notebookQuestionIds.includes(37)} oncomplete={finishWashingtonGhost} onclose={() => washingtonGhostOpen = false} />{/if}
+  {#if lincolnGhostOpen}<LincolnGhost oncomplete={finishLincolnGhost} />{/if}
+  {#if notebookOpen}<Notebook entries={notes} initialTab={notebookTab} {seenVocabulary} {vocabularyEasterEggSeen} onviewvocabulary={viewVocabulary} onclose={() => notebookOpen = false} />{/if}
+  <div class="sr-only" aria-live="polite">{announcement}</div>
 {/if}
-
-{#if showBrief && screen === 'game'}
-  <div class="modal-backdrop">
-    <dialog class="bill-brief" open aria-labelledby="brief-title">
-      <p class="eyebrow">YOUR FIRST BILL</p><h2 id="brief-title">THE CONNECTED<br />SCHOOLS ACT</h2>
-      <p>Improve reliable internet access, learning tools, and teacher support for public-school students.</p>
-      <div><span>STARTING COALITION</span><strong>0 VOTES</strong></div>
-      <div><span>NEEDED TO PASS</span><strong>218 VOTES</strong></div>
-      <p class="brief-note">Walk through the House chamber. Talk with coalition leaders and answer official U.S. civics questions to earn their support.</p>
-      <button class="primary" onclick={() => showBrief = false}>STEP ONTO THE FLOOR →</button>
-    </dialog>
-  </div>
-{/if}
-
-{#if active && activeQuestion}<EncounterPanel encounter={active} question={activeQuestion} attempt={((activeLevel === 'senate' ? senateAttempts : attempts)[active.id] ?? 0) + 1} {inventory} playerName={playerName} rapport={rapportScores[active.id] ?? 50} activeTrait={activeTraitFor(active.id)} alternativeTrait={alternativeTraitFor(active.id)} hasRapport={hasRapportPhase(active)} isExtreme={['augustus-kane', 'lucia-marchetti'].includes(active.id)} onrapport={updateRapport} rapportBonus={activeRapportBonus} {resolveDynamicAnswer} onskipdynamic={() => { if (activeQuestionId === 29) representativeLookupOpen = true; }} onuseitem={usePowerUp} oncomplete={resolveEncounter} onclose={() => { active = null; activeQuestionId = null; activeQuestionData = null; activeRapportBonus = 0; requestAnimationFrame(() => (document.activeElement as HTMLElement | null)?.blur()); }} />{/if}
-{#if scoutTrainingOpen}<ScoutTraining leaderName="Rep. Priya Anand" oncomplete={() => { scoutTrainingSeen = true; scoutTargetId = 'priya-anand'; scoutTrainingOpen = false; announcement = 'Your scout has prepared you for Rep. Anand. Find more scouts around the Capitol for optional help.'; save(); }} />{/if}
-{#if committeeAmbushOpen && committeeAmbushQuestionId !== null}<CommitteeAmbush question={civicsQuestionById.get(committeeAmbushQuestionId)!} oncomplete={finishCommitteeAmbush} />{/if}
-{#if committeeOpen}<CommitteeDungeon questions={committeeQuestionIds.slice(1).map((id) => civicsQuestionById.get(id)!).filter(Boolean)} committeeVotes={houseLedger.committeeVotes} hasPowerUp={Object.values(inventory).some((count) => count > 0)} adaPrepared={committeeEased} rapport={committeeRapport} onstudy={() => discoverNotebookEntry('Committee reference shelf')} oncomplete={finishCommittee} />{/if}
-{#if shopOpen}<RotundaShop {influence} {inventory} filibusterTriggered={senateVotes >= 50 || filibusterResolved} ownedQuestionIds={notebookQuestionIds} onbuyquestion={buyNotebookQuestion} onbuy={buyPowerUp} onclose={() => shopOpen = false} />{/if}
-{#if billScrollOpen}<BillScroll {committeeStatus} approvedAmendments={committeeAmendments} onclose={() => billScrollOpen = false} />{/if}
-{#if housePassageOpen}<HousePassage {votes} oncontinue={continueToRotunda} />{/if}
-{#if benTutorialOpen}<BenTutorial playerName={playerName} oncomplete={finishBenTutorial} />{/if}
-{#if filibusterOpen && !filibusterIntroSeen}<FilibusterIntro oncontinue={() => { filibusterIntroSeen = true; save(); }} />{/if}
-{#if filibusterOpen && filibusterIntroSeen}<FilibusterGauntlet questions={filibusterQuestionIds.map((id) => civicsQuestionById.get(id)!).filter(Boolean)} oncomplete={finishFilibuster} />{/if}
-{#if activeHoldId}<SenateHold leaderId={activeHoldId} notebookEntries={notes.length} newEntriesSinceContact={activeHoldId === 'del-ashworth' && delNotebookCountAtContact !== null ? Math.max(0, notebookQuestionIds.length - delNotebookCountAtContact) : 0} {influence} question={civicsQuestionById.get(senateQuestionIds().find((id) => !encounteredQuestionIds.includes(id)) ?? 73)!} onresolve={resolveHold} onoffice={() => { activeHoldId = null; screen = 'office'; }} onclose={() => activeHoldId = null} />{/if}
-{#if clotureOpen}<ClotureTransition oncontinue={openWhiteHouse} />{/if}
-{#if ovalOfficeOpen}<OvalOffice questions={ovalOfficeQuestionIds.map((id) => civicsQuestionById.get(id)!).filter(Boolean)} alignment={presidentAlignment} {inventory} onuseitem={usePowerUp} oncomplete={finishOvalOffice} />{/if}
-{#if celebrationOpen}<BillCelebration playerScore={finalScore} notebookEntries={notes.length} correctAnswerPoints={correctAnswerPoints} {notebookEntryPoints} ovalBonus={ovalOfficeAccuracyBonus} {speedBonus} infBonus={Math.min(3200, influence * 3)} onlock={lockScore} onexplore={continueExploring} />{/if}
-{#if overrideOpen}<VetoOverride houseVotes={votes} {senateVotes} onreturn={returnToCongress} />{/if}
-{#if overrideFinaleOpen}<OverrideFinale oncomplete={finishOverride} />{/if}
-{#if profileOpen}<StudentProfile initialCode={jurisdictionCode} initialCity={city} oncomplete={saveProfile} />{/if}
-{#if certificateOpen && lastCompletion}<CompletionCertificate playerName={lastCompletion.playerName} route={lastCompletion.route} houseVotes={lastCompletion.houseVotes} senateVotes={lastCompletion.senateVotes} notebookEntries={lastCompletion.notebookEntries} influence={lastCompletion.influence} score={lastCompletion.score} oncontinue={() => { certificateOpen = false; screen = 'title'; }} />{/if}
-{#if characterCreationOpen}<CharacterCreation oncomplete={finishCharacterCreation} />{/if}
-{#if representativeLookupOpen}<RepresentativeLookup onskip={skipRepresentativeQuestion} onlookup={() => skipRepresentativeQuestion()} />{/if}
-{#if assetCreditsOpen}<AssetCredits onclose={() => assetCreditsOpen = false} />{/if}
-{#if houseContactOpen}<div class="modal-backdrop"><dialog class="leader-contact-panel" open aria-labelledby="leader-contact-title"><button class="close" aria-label="Close leader directory" onclick={() => houseContactOpen = false}>×</button><p class="eyebrow">HOUSE CONTACT LIST</p><h2 id="leader-contact-title">AVAILABLE LEADERS</h2><p>Select a leader to begin an encounter directly. This is a reliable alternative while the map interaction layer is being refined.</p><div class="leader-contact-list">{#each houseEncounters.filter((encounter) => !completed.includes(encounter.id) && !locked.includes(encounter.id)) as encounter}<button onclick={() => startHouseEncounter(encounter)}><b>{encounter.name}</b><span>{encounter.affiliation} · {encounter.votes} votes</span></button>{/each}</div></dialog></div>{/if}
-{#if mapRoom}{@const roomScoutTargets = { 'west-caucus': 'priya-anand', 'east-caucus': 'selena-marsh', 'west-cloakroom': 'hank-delgado', 'east-cloakroom': 'naomi-cho' } as const}{@const targetId = roomScoutTargets[mapRoom.roomId]}<MapRoom {...mapRoom} discovered={Object.values(notebookSources).includes(mapRoom.source)} scoutAvailable={houseScoutTargets.includes(targetId)} ondiscover={discoverNotebookEntry} onscout={() => { if (!houseScoutTargets.includes(targetId)) { houseScoutTargets = [...houseScoutTargets, targetId]; announcement = `Scout intel logged for ${houseEncounters.find((encounter) => encounter.id === targetId)?.name}. Watch for what they value in the Rapport conversation.`; save(); } }} onreturn={() => returnFromHouseRoom(mapRoom!.roomId)} />{/if}
-{#if scoutLeaderId}<ScoutLeader leaderId={scoutLeaderId} oncomplete={finishScouting} onclose={() => scoutLeaderId = null} />{/if}
-{#if landmarkCard}<LandmarkCard landmark={landmarkCard} onclose={() => landmarkCard = null} oncontinue={() => { const spot = landmarkCard; landmarkCard = null; if(spot==='capitol'){screen='rotunda';} else if(spot==='white-house'){if(whiteHouseUnlocked)screen='whiteHouse';else announcement='The White House opens after Congress passes the bill.';} else if(spot==='monument'){if((Math.floor(minutes/60)%24>=20||Math.floor(minutes/60)%24<6)&&notes.length>=100&&(encounteredQuestionIds.includes(37)||notebookQuestionIds.includes(37)))washingtonGhostOpen=true;else discoverNotebookEntry('Washington Monument tourist board');} else if(spot==='reflecting'){discoverNotebookEntry('Reflecting Pool visitor guide');} else if(spot==='lincoln'){discoverNotebookEntry('Lincoln Memorial visitor guide');} else if(spot==='smithsonian'){discoverNotebookEntry('Smithsonian museum guide');} else if(spot==='library'){hearGhostWhisper('washington');} else if(spot==='court'){hearGhostWhisper('lincoln');} else if(spot==='duncan'){meetDuncan();} else if(spot==='tourists'){touristPanelOpen=true;} else if(spot==='cafe'||spot==='press'){if(Math.floor(minutes/60)%24>=20||Math.floor(minutes/60)%24<6)nightAlternatesOpen=true;else touristPanelOpen=true;} }} />{/if}
-{#if touristPanelOpen}<TouristEncounters claimed={touristClaims} onclaim={claimTouristPack} onclose={() => touristPanelOpen = false} />{/if}
-{#if nightAlternatesOpen}<DcNightAlternates {completed} onselect={beginNightAlternate} onclose={() => nightAlternatesOpen = false} />{/if}
-{#if washingtonGhostOpen}<WashingtonGhost hasPriorKnowledge={encounteredQuestionIds.includes(37) || notebookQuestionIds.includes(37)} oncomplete={finishWashingtonGhost} onclose={() => washingtonGhostOpen = false} />{/if}
-{#if lincolnGhostOpen}<LincolnGhost oncomplete={finishLincolnGhost} />{/if}
-{#if notebookOpen}<Notebook entries={notes} initialTab={notebookTab} {seenVocabulary} {vocabularyEasterEggSeen} onviewvocabulary={viewVocabulary} onclose={() => notebookOpen = false} />{/if}
-<div class="sr-only" aria-live="polite">{announcement}</div>

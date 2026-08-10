@@ -15,7 +15,7 @@ To complete the game, move the bill through the House, Senate, and White House.
 
 ## Moving and Talking
 
-- Move with the arrow keys or `W`, `A`, `S`, and `D`.
+- Move with the arrow keys.
 - Press `E` or `Enter` near an available Representative to talk.
 - A white `!` means the person is available.
 - A green check means you secured that person's support.

@@ -171,7 +171,7 @@
 <div class="viewport illustrated-house" bind:this={viewport} tabindex="-1">
   <div class="world" style={`width:${worldWidth}px;height:${worldHeight}px`}>
     <div class="house-mission-card" aria-hidden="true"><span>U.S. CAPITOL</span><b>THE HOUSE FLOOR</b><i>BUILD A COALITION</i></div>
-    <div class="house-chamber" aria-hidden="true"><div class="house-aisle aisle-west"></div><div class="house-aisle aisle-east"></div><div class="desk-grid"></div></div>
+    <div class="house-chamber" aria-hidden="true"><div class="house-gallery gallery-north"></div><div class="house-gallery gallery-south"></div><div class="house-dais"><span>HOUSE<br />ROSTRUM</span><i>★</i></div><div class="house-aisle aisle-west"></div><div class="house-aisle aisle-east"></div><div class="desk-grid"></div></div>
     <div class="north-corridor" aria-hidden="true"><span>MAIN NORTH CORRIDOR</span></div>
     <div class="south-corridor" aria-hidden="true"><span>MAIN SOUTH CORRIDOR</span></div>
     <div class="rotunda-hallway" aria-hidden="true"><div class="hallway-runner"></div><div class="hallway-columns"><i></i><i></i><i></i><i></i></div><b>ROTUNDA HALL</b><span>THE CAPITOL ROTUNDA →</span></div>
@@ -182,7 +182,7 @@
     <div class="cloakroom east-cloak" aria-hidden="true"><div class="house-room-sign">EAST<br />CLOAKROOM</div></div>
     <div class="rotunda-exit" aria-hidden="true"><div class="house-room-sign">ENTER<br />ROTUNDA</div></div>
     <div class="dc-exit" aria-hidden="true"><div class="house-room-sign">EXIT TO<br />D.C.</div></div>
-    <div class="house-paper-table table-one" aria-hidden="true"><i></i><i></i><i></i></div><div class="house-paper-table table-two" aria-hidden="true"><i></i><i></i></div>
+    <div class="house-paper-table table-one" aria-hidden="true"><i></i><i></i><i></i></div><div class="house-paper-table table-two" aria-hidden="true"><i></i><i></i></div><div class="house-floor-seal" aria-hidden="true"><b>★</b><span>U.S. HOUSE</span></div><div class="house-visitor-rail rail-west" aria-hidden="true"></div><div class="house-visitor-rail rail-east" aria-hidden="true"></div>
     {#each encounters as encounter}
       <Npc {encounter} completed={completed.includes(encounter.id)} locked={locked.includes(encounter.id)} onHold={held.includes(encounter.id)} nearby={!interactionBlocked && nearby?.id === encounter.id} {paused} oninteract={interactWith} />
     {/each}

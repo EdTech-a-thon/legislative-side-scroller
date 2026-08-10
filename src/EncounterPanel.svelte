@@ -6,6 +6,7 @@
   import { officeholderDataLastVerified } from './officeholders';
   import type { Inventory, PowerUpId } from './RotundaShop.svelte';
   import { dialogueFor, traitCopy, type Trait } from './npc-dialogue';
+  import Portrait from './Portrait.svelte';
 
   let {
     encounter,
@@ -123,8 +124,8 @@
 
 <div class="modal-backdrop" role="presentation">
   <dialog class="dialog-panel" open aria-labelledby="speaker">
-    <header class:has-boss={isExtreme} class="speaker">
-        {#if isExtreme}<div class="boss-initials" aria-hidden="true">{encounter.portrait}</div>{/if}
+    <header class:has-boss={isExtreme || encounter.id === 'wren-castellano'} class="speaker">
+        {#if encounter.id === 'wren-castellano'}<Portrait character="wren" name="Rep. Wren Castellano" initials="WC" mood={stage === 'feedback' && correct ? 'pleased' : stage === 'greeting' ? 'thoughtful' : 'neutral'} />{:else if isExtreme}<div class="boss-initials" aria-hidden="true">{encounter.portrait}</div>{/if}
       <div>
         <p>{encounter.affiliation} · POLARIZATION {encounter.polarization}</p>
         <h2 id="speaker">REP. {encounter.name.toUpperCase()}</h2>

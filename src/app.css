@@ -51,6 +51,7 @@ h1, h2, h3, p { margin-top: 0; }
 }
 .title-screen::before, .title-screen::after { content: ''; position: fixed; inset: 18px; border: 3px solid #b43e3a; pointer-events: none; }
 .title-screen::after { inset: 25px; border-width: 1px; border-color: #d89c3f; }
+.title-home-art { position: relative; z-index: 1; display: block; width: min(780px, 84vw); max-height: min(58vh, 580px); object-fit: contain; margin: 0 0 10px; filter: drop-shadow(7px 8px 0 rgba(4, 8, 18, .55)); }
 .title-stars { color: var(--gold); letter-spacing: .8em; margin-right: -.8em; }
 .kicker { margin: 12px 0 5px; font-size: .72rem; font-weight: 800; letter-spacing: .4em; }
 .title-screen h1, .victory-screen h1 { margin: 0; font: 700 clamp(3rem, 9vw, 6.8rem)/.78 'Pixelify Sans'; letter-spacing: -.04em; text-shadow: 6px 6px 0 #060a12; }
@@ -60,7 +61,7 @@ h1, h2, h3, p { margin-top: 0; }
 .special-thanks { z-index: 1; max-width: 570px; margin: 4px 0 18px; color: #aebbd0; font-size: .58rem; line-height: 1.6; }
 .completion-link { z-index: 1; margin-top: 14px; color: #e8b956; }
 .asset-link { z-index: 1; margin-top: 8px; color: #aebbd0; font-size: .58rem; }
-.controls-hint { position: absolute; bottom: 38px; color: #8190a8; font-size: .65rem; letter-spacing: .12em; }
+.controls-hint { position: absolute; bottom: 54px; color: #8190a8; font-size: .65rem; letter-spacing: .12em; }
 .capitol-art { width: min(520px, 85vw); height: 125px; position: relative; margin-top: 4px; overflow: hidden; opacity: .8; }
 .capitol-art .dome { position: absolute; width: 170px; height: 85px; border-radius: 90px 90px 0 0; background: #d8cdb7; left: calc(50% - 85px); top: 5px; box-shadow: inset 0 -10px #a39b8c; }
 .capitol-art .drum { position: absolute; width: 220px; height: 35px; background: repeating-linear-gradient(90deg,#b5ad9d 0 12px,#e5dac3 12px 22px); left: calc(50% - 110px); top: 75px; border-block: 6px solid #817a6d; }
@@ -730,6 +731,7 @@ h1, h2, h3, p { margin-top: 0; }
 
 .viewport.illustrated-house .house-mission-card { position: absolute; z-index: 8; left: 50%; top: 90px; width: 300px; padding: 9px; transform: translateX(-50%); color: #2a1b0e; border: 5px solid #3d2314; outline: 3px solid #c5a059; background: #f2e3c6; box-shadow: inset 0 0 0 3px #8a6232, inset 0 0 0 6px #eadbb4, 4px 5px 0 rgba(29, 49, 47, .36); text-align: center; image-rendering: pixelated; }.viewport.illustrated-house .house-mission-card::before, .viewport.illustrated-house .house-mission-card::after { content: ''; position: absolute; top: 50%; width: 9px; height: 9px; background: #c5a059; box-shadow: 0 0 0 3px #3d2314; transform: translateY(-50%); }.viewport.illustrated-house .house-mission-card::before { left: 10px; }.viewport.illustrated-house .house-mission-card::after { right: 10px; }.viewport.illustrated-house .house-mission-card span, .viewport.illustrated-house .house-mission-card i { display: block; color: #7a5c28; font: 800 .42rem 'Chivo Mono', monospace; letter-spacing: .15em; font-style: normal; }.viewport.illustrated-house .house-mission-card b { display: block; margin: 4px 0; color: #2a1b0e; font: 700 1.05rem 'Pixelify Sans', sans-serif; letter-spacing: .05em; }.viewport.illustrated-house .house-mission-card i { color: #5a3d1e; }
 .viewport.illustrated-house .house-aisle { position: absolute; z-index: 2; top: 165px; bottom: 64px; width: 82px; border-inline: 4px solid rgba(245,229,180,.65); background: rgba(238,221,168,.28); }.viewport.illustrated-house .aisle-west { left: 33%; transform: skewX(-9deg); }.viewport.illustrated-house .aisle-east { right: 33%; transform: skewX(9deg); }
+.viewport.illustrated-house .house-gallery { position:absolute; z-index:1; left:55px; right:55px; height:64px; border:5px solid #315d64; background:repeating-linear-gradient(90deg,#4a7775 0 52px,#f0dfaf 52px 70px,#3b686c 70px 122px); box-shadow:inset 0 0 0 6px rgba(255,244,208,.3); }.viewport.illustrated-house .gallery-north { top:57px; }.viewport.illustrated-house .gallery-south { bottom:57px; }.viewport.illustrated-house .house-dais { position:absolute; z-index:4; left:calc(50% - 180px); top:72px; width:360px; height:116px; color:#f8ebc4; border:10px solid #315d64; background:linear-gradient(#4d7d79,#315e63); box-shadow:inset 0 0 0 6px #d8b564,0 7px 0 rgba(30,65,64,.32); text-align:center; font:700 .62rem/1.2 'Pixelify Sans',sans-serif; letter-spacing:.13em; }.viewport.illustrated-house .house-dais span { position:absolute; left:36px; top:27px; }.viewport.illustrated-house .house-dais i { position:absolute; right:43px; top:24px; color:#edca72; font:700 3rem/.8 Georgia,serif; font-style:normal; }.viewport.illustrated-house .house-floor-seal { position:absolute; z-index:2; left:calc(50% - 72px); top:900px; display:grid; place-items:center; width:144px; height:144px; color:#315d64; border:9px double #d5b461; border-radius:50%; background:rgba(244,230,187,.62); box-shadow:0 5px 0 rgba(35,72,69,.25); text-align:center; }.viewport.illustrated-house .house-floor-seal b { font:700 2.5rem/.75 Georgia,serif; }.viewport.illustrated-house .house-floor-seal span { font:800 .38rem 'Chivo Mono',monospace; letter-spacing:.1em; }.viewport.illustrated-house .house-visitor-rail { position:absolute; z-index:3; top:455px; width:23px; height:640px; border-inline:5px solid #315d64; background:repeating-linear-gradient(0deg,#d9b460 0 18px,#416d6e 18px 36px); box-shadow:3px 3px 0 rgba(31,64,65,.2); }.viewport.illustrated-house .rail-west { left:770px; }.viewport.illustrated-house .rail-east { right:770px; }
 .viewport.illustrated-house .desk-grid { inset: 150px 85px 60px !important; opacity: .88 !important; background: repeating-linear-gradient(90deg, transparent 0 112px, rgba(39, 73, 67, .72) 112px 158px, transparent 158px 280px), repeating-linear-gradient(0deg, transparent 0 88px, rgba(249, 226, 167, .45) 88px 118px, transparent 118px 184px) !important; }
 .viewport.illustrated-house .north-corridor, .viewport.illustrated-house .south-corridor { z-index: 6; height: 78px; overflow: hidden; border-color: #315d64 !important; background: #e8d6a7 !important; box-shadow: inset 0 0 0 6px #315d64, inset 0 0 0 10px #efdca9; }
 .viewport.illustrated-house .north-corridor { top: 342px; }.viewport.illustrated-house .south-corridor { top: 1322px; }
@@ -1103,10 +1105,52 @@ h1, h2, h3, p { margin-top: 0; }
 .west-wing-wall{position:absolute;top:118px;width:64px;height:620px;background:repeating-linear-gradient(0deg,#eadfc4 0 45px,#a77e54 45px 51px);border:5px solid #547b78}.west-wing-wall.west{left:18px}.west-wing-wall.east{right:18px}.west-wing-plant{position:absolute;width:62px;height:78px;border:5px solid #6b4e35;border-radius:50% 50% 20% 20%;background:radial-gradient(circle at 30% 30%,#83b66a,#397249 60%,#265239 61%)}.plant-a{left:125px;top:500px}.plant-b{right:125px;top:500px}.west-wing-bench{position:absolute;width:120px;height:30px;border:5px solid #49362b;background:repeating-linear-gradient(90deg,#b47d4b 0 20px,#87552f 20px 30px)}.bench-a{left:235px;top:640px}.bench-b{right:235px;top:640px}.presidential-seal-floor{position:absolute;left:calc(50% - 68px);top:415px;display:grid;place-items:center;width:136px;height:136px;color:#315f64;border:8px double #d6b867;border-radius:50%;background:#f2e3b4;font:700 2.8rem Georgia,serif;box-shadow:0 5px 0 rgba(30,67,66,.25)}.presidential-seal-floor small{display:block;margin-top:-13px;font:800 .32rem 'Chivo Mono',monospace;letter-spacing:.08em}.abner-card{display:flex;align-items:center;gap:14px}.abner-card .pixel-portrait{flex:none}.abner-card h2{margin:5px 0}.abner-card .eyebrow{margin:0}
 
 /* Existing character sheets add texture beneath the CSS fallback silhouettes. */
-.portrait-sprite{position:absolute;inset:8px 10px 9px;z-index:0;opacity:.24;background:url('/assets/modern-interiors/New_Characters%2048x48.png') var(--sprite-position) / 576px 768px;image-rendering:pixelated;mix-blend-mode:multiply}.pixel-portrait>div:not(.portrait-sprite),.pixel-portrait em{z-index:1}.player-sprite>i,.npc-sprite>i{position:absolute;inset:2px;z-index:0;opacity:.22;background:url('/assets/modern-interiors/New_Characters%2048x48.png') var(--sprite-position) / 576px 768px;image-rendering:pixelated;mix-blend-mode:multiply}.player-sprite span,.npc-sprite span{z-index:1}
+.portrait-sprite{position:absolute;inset:8px 10px 9px;z-index:0;opacity:.24;background:url('/assets/modern-interiors/New_Characters%2048x48.png') var(--sprite-position) / 576px 768px;image-rendering:pixelated;mix-blend-mode:multiply}.pixel-portrait>div:not(.portrait-sprite),.pixel-portrait em{z-index:1}.pixel-portrait>img{display:block;width:100%;height:100%;object-fit:cover;image-rendering:auto}.player-sprite>i,.npc-sprite>i{position:absolute;inset:2px;z-index:0;opacity:.22;background:url('/assets/modern-interiors/New_Characters%2048x48.png') var(--sprite-position) / 576px 768px;image-rendering:pixelated;mix-blend-mode:multiply}.player-sprite span,.npc-sprite span{z-index:1}
 
 /* Civic silhouettes make the large D.C. map legible at a glance. */
 .dc-site i{position:relative;overflow:visible}.dc-site i::before,.dc-site i::after{content:'';position:absolute}.dc-capitol i{width:150px;height:70px;border-color:#52676a;background:linear-gradient(#e9dfc6 0 28%,#b2b8a8 29% 34%,#e4d8bc 35%)}.dc-capitol i::before{left:39px;top:-43px;width:62px;height:53px;border:6px solid #52676a;border-bottom:0;border-radius:62px 62px 0 0;background:#dfd5bd}.dc-capitol i::after{left:11px;right:11px;bottom:8px;height:25px;background:repeating-linear-gradient(90deg,#596d70 0 7px,transparent 7px 19px)}.dc-white-house i{width:155px;height:72px;border-color:#52676a;background:linear-gradient(#f4f0df 0 70%,#9cae91 70%)}.dc-white-house i::before{left:40px;top:-26px;width:66px;height:28px;border:5px solid #52676a;border-bottom:0;background:#f4f0df}.dc-white-house i::after{left:15px;right:15px;bottom:9px;height:25px;background:repeating-linear-gradient(90deg,#65777a 0 7px,transparent 7px 18px)}.dc-monument i{width:32px;height:144px;border-color:#52676a;background:linear-gradient(90deg,#c8c8bc,#f1eee2 48%,#b2b4ad);clip-path:polygon(50% 0,100% 100%,0 100%)}.dc-lincoln i{width:155px;height:70px;border-color:#52676a;background:#ded8c5}.dc-lincoln i::before{left:18px;right:18px;top:-25px;height:25px;border:5px solid #52676a;background:#ddd5be;clip-path:polygon(50% 0,100% 100%,0 100%)}.dc-lincoln i::after{left:18px;right:18px;bottom:8px;height:30px;background:repeating-linear-gradient(90deg,#647477 0 7px,transparent 7px 18px)}.dc-library i,.dc-court i{width:130px;height:66px;border-color:#52676a;background:#e4d7b7}.dc-library i::after,.dc-court i::after{left:12px;right:12px;bottom:8px;height:26px;background:repeating-linear-gradient(90deg,#637375 0 7px,transparent 7px 18px)}.dc-court i::before{left:34px;top:-27px;width:52px;height:27px;border:5px solid #52676a;border-bottom:0;border-radius:50px 50px 0 0;background:#e3dcc8}
 
 /* West Wing details frame the player path without changing room targets. */
 .west-wing-portrait{position:absolute;z-index:1;top:150px;width:98px;height:70px;padding-top:51px;color:#f4e5bd;border:6px solid #526f70;background:linear-gradient(135deg,#618d87,#315d62);box-shadow:4px 5px 0 rgba(38,73,71,.25);text-align:center;font:700 .36rem 'Chivo Mono',monospace}.west-wing-portrait::before{content:'';position:absolute;left:34px;top:8px;width:24px;height:34px;border:3px solid #264c53;border-radius:45% 45% 36% 36%;background:#d7a17c}.portrait-washington{left:125px}.portrait-lincoln{right:125px}.west-wing-flag{position:absolute;z-index:1;top:235px;width:9px;height:145px;background:#8b6d43}.west-wing-flag::after{content:'';position:absolute;top:4px;width:58px;height:39px;background:repeating-linear-gradient(0deg,#f5ead0 0 5px,#b34d4a 5px 10px)}.flag-west{left:166px}.flag-west::after{left:8px}.flag-east{right:166px}.flag-east::after{right:8px}.west-wing-console{position:absolute;z-index:1;top:398px;width:110px;height:42px;border:5px solid #516e70;background:#a6764b;box-shadow:4px 5px 0 rgba(38,73,71,.24)}.west-wing-console i{position:absolute;top:7px;width:29px;height:19px;border:2px solid #8b7049;background:#f4e4b7;transform:rotate(-7deg)}.west-wing-console i:first-child{left:14px}.west-wing-console i:last-child{right:14px;transform:rotate(8deg)}.console-west{left:105px}.console-east{right:105px}
+
+/* EdTech-a-thon site chrome: shared footer plus the /about and /privacy pages. */
+.site-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 18px; width: 100%; max-width: 780px; margin: 0 auto; padding: 18px 16px 20px; text-align: center; }
+.site-footer a { display: inline-flex; align-items: center; gap: 8px; color: #8fa0b8; font-size: .62rem; letter-spacing: .1em; text-decoration: none; }
+.site-footer a:hover { color: var(--gold); text-decoration: underline; }
+.site-footer img { width: 22px; height: 22px; }
+.title-screen .site-footer { position: absolute; z-index: 2; bottom: 26px; left: 0; right: 0; padding-block: 0; }
+
+.site-page { height: 100%; overflow-y: auto; display: flex; flex-direction: column; background: var(--ink); }
+.site-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 24px; border-bottom: 5px solid #8a302f; background: #18243b; }
+.site-header .brand { color: var(--cream); text-decoration: none; }
+.site-back { color: #c8d0dc; font-size: .62rem; letter-spacing: .1em; text-decoration: none; border: 1px solid #54657e; background: #101a2d; padding: 8px 10px; }
+.site-back:hover { color: var(--gold); border-color: var(--gold); }
+
+.site-main { flex: 1; width: 100%; max-width: 780px; margin: 0 auto; padding: 28px 16px 8px; }
+.site-main h1 { margin: 0 0 6px; font: 700 2.6rem/.9 'Pixelify Sans'; letter-spacing: -.02em; text-shadow: 4px 4px 0 #060a12; }
+.site-lede { margin: 0 0 22px; color: #9daec4; font-size: .68rem; line-height: 1.6; }
+
+.site-card { margin-bottom: 18px; padding: 20px; border: 2px solid #34455f; background: #101a2d; box-shadow: 5px 5px 0 rgba(6, 10, 18, .55); }
+.site-card h2 { margin: 0 0 10px; font: 600 1.15rem 'Pixelify Sans'; letter-spacing: .04em; color: var(--gold); }
+.site-card p { margin: 0 0 14px; font-size: .68rem; line-height: 1.85; color: #d7dee9; }
+.site-card p:last-child { margin-bottom: 0; }
+.site-card a { color: var(--gold); text-underline-offset: 4px; }
+.site-card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.site-card-head h2 { margin: 0; }
+.site-card-logo { width: 42px; height: 42px; flex: none; }
+
+.site-photo { max-width: 520px; margin: 26px auto 6px; padding: 10px 10px 4px; background: #f7ecd1; border: 2px solid #34455f; box-shadow: 6px 7px 0 rgba(6, 10, 18, .55); transform: rotate(-1deg); }
+.site-photo img { display: block; width: 100%; background: #d8d2c4; }
+.site-photo figcaption { padding: 12px 0 10px; color: #3b3323; text-align: center; font: 1.05rem 'Segoe Script', 'Bradley Hand', 'Snell Roundhand', 'Comic Sans MS', cursive; }
+
+.site-promise { margin: 0; padding-left: 20px; color: #d7dee9; font-size: .68rem; line-height: 2; }
+.site-promise strong { color: var(--cream); }
+.site-cta { display: inline-block; margin-top: 4px; font-size: .68rem; text-decoration: none; }
+.site-card a.primary { color: var(--ink); }
+
+@media (max-width: 700px) {
+  .site-header { padding: 12px 14px; }
+  .site-header .brand > div { display: none; }
+  .site-main h1 { font-size: 2rem; }
+  .site-card { padding: 15px; }
+}
