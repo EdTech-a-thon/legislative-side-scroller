@@ -58,7 +58,7 @@ jobs:
               --title "Update current officeholder and representative data" \
               --body "Automated refresh from the Senate, NGA, congress-legislators and ZIP-to-district sources. Merging updates \`officeholderDataLastVerified\` and \`representativeDataLastVerified\`, which the game uses to decide whether current-officeholder questions are safe to ask.
 
-**A January run needs a closer look.** A new Congress is seated in January, and redistricting moves ZIP codes between districts. Confirm that \`src/representatives.ts\` and \`src/zip-districts.ts\` describe the *currently seated* Congress, not the map used at the last election, before merging."
+          **A January run needs a closer look.** A new Congress is seated in January, and redistricting moves ZIP codes between districts. Confirm that \`src/representatives.ts\` and \`src/zip-districts.ts\` describe the *currently seated* Congress, not the map used at the last election, before merging."
           fi
 
           # Requesting a review emails the reviewer even if they only watch the
