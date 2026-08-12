@@ -27,7 +27,7 @@
     <button class="hub-stop scroll rotunda-east" onclick={onbill}><b>LIVING BILL SCROLL</b><span>Review your bill</span></button>
     <button class="hub-stop notebook rotunda-northwest" onclick={onnotebook}><b>NOTEBOOK</b><span>Review civics entries</span></button>
     <button class="hub-stop guide rotunda-northeast" onclick={onguide}><b>CIVICS GUIDE</b><span>Bill-to-law study reference</span></button>
-    <button class="hub-stop profile rotunda-southwest" onclick={onprofile}><b>STUDENT PROFILE</b><span>Update state or city</span></button>
+    <button class="hub-stop profile rotunda-southwest" onclick={onprofile}><b>STUDENT PROFILE</b><span>Update state or ZIP code</span></button>
     <button class="hub-stop dc rotunda-southeast" onclick={ondistrict}><b>EXPLORE D.C.</b><span>Landmarks and side content</span></button>
     <button class="hub-stop save rotunda-center-south" onclick={onsave}><b>SAVE STATION</b><span>Save progress</span></button>
   </section>
