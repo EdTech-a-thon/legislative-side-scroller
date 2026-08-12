@@ -1,6 +1,7 @@
 import { civicsAnswerVariants, historicalPersonVariants, type CivicsQuestion } from './civics-questions';
 import { isSupportedDynamicQuestion, jurisdictionByCode } from './jurisdictions';
 import { governorsByStateName, nationalOfficeholders, senatorsByState } from './officeholders';
+import { representativesByState } from './representatives';
 
 export type DynamicAnswerResolver = (question: CivicsQuestion, answer: string) => boolean | undefined;
 
@@ -194,12 +195,53 @@ export function validateStableJurisdictionAnswer(question: CivicsQuestion, submi
   }
   if (question.id === 23 && !jurisdiction.hasSenators) return answer === 'no us senators' || answer === 'no senators' || answer === 'there are no us senators';
   if (question.id === 61 && !jurisdiction.hasGovernor) return answer === 'no governor' || answer === 'dc has no governor' || answer === 'district of columbia has no governor';
+  if (question.id === 29 && !jurisdiction.hasVotingRepresentative) return noVotingRepresentativeAnswers.has(answer);
   return false;
 }
 
-export function validateSupportedDynamicAnswer(question: CivicsQuestion, submittedAnswer: string, jurisdictionCode: string) {
+// USCIS accepts either the Delegate's or Resident Commissioner's name or a statement that the
+// jurisdiction has no voting representative, so both paths are correct for DC and the territories.
+const noVotingRepresentativeAnswers = new Set([
+  'no representative', 'no representatives', 'no us representative', 'no us representatives',
+  'no voting representative', 'no voting representatives',
+  'there is no voting representative', 'there are no voting representatives',
+  'we have no voting representative', 'we have no voting representatives',
+  'my territory has no voting representative', 'my territory has no voting representatives',
+  'the territory has no voting representatives', 'the territory has no representatives',
+  'dc has no voting representative', 'dc has no voting representatives',
+  'dc has no representative', 'dc has no representatives',
+  'district of columbia has no voting representative', 'district of columbia has no voting representatives'
+]);
+
+/**
+ * A state alone cannot identify one House member, and a district lookup is optional, so acceptance
+ * is tiered. With districts from a ZIP the answer must be that district's member; without them any
+ * member of the student's delegation counts. The wider tier is deliberate: it never marks a
+ * genuinely correct answer wrong, which matters more here than maximum strictness.
+ */
+export function validateRepresentativeAnswer(question: CivicsQuestion, submittedAnswer: string, jurisdictionCode: string, districts?: number[]) {
+  const jurisdiction = jurisdictionByCode(jurisdictionCode);
+  if (!jurisdiction) return false;
+
+  const delegation = representativesByState[jurisdictionCode] ?? [];
+  if (!delegation.length) return false;
+
+  if (!jurisdiction.hasVotingRepresentative) {
+    return matchesOfficeholderName(submittedAnswer, delegation.map((member) => member.name))
+      || validateStableJurisdictionAnswer(question, submittedAnswer, jurisdictionCode);
+  }
+
+  // A vacant district has no correct name to give, so fall back to the delegation rather than
+  // leaving the student with an unanswerable question.
+  const inDistrict = districts?.length ? delegation.filter((member) => districts.includes(member.district)) : [];
+  const candidates = inDistrict.length ? inDistrict : delegation;
+  return matchesOfficeholderName(submittedAnswer, candidates.map((member) => member.name));
+}
+
+export function validateSupportedDynamicAnswer(question: CivicsQuestion, submittedAnswer: string, jurisdictionCode: string, districts?: number[]) {
   if (!isSupportedDynamicQuestion(question.id, jurisdictionCode)) return undefined;
   if (question.id === 62) return validateStableJurisdictionAnswer(question, submittedAnswer, jurisdictionCode);
+  if (question.id === 29) return validateRepresentativeAnswer(question, submittedAnswer, jurisdictionCode, districts);
   if (question.id === 23) {
     const jurisdiction = jurisdictionByCode(jurisdictionCode);
     if (!jurisdiction?.hasSenators) return validateStableJurisdictionAnswer(question, submittedAnswer, jurisdictionCode);
@@ -216,8 +258,8 @@ export function validateSupportedDynamicAnswer(question: CivicsQuestion, submitt
 }
 
 /**
- * For officeholder questions, a last name is normally enough. First names matter only
- * when the maintained lookup has more than one relevant official with that last name.
+ * For officeholder questions, a surname is normally enough. First names matter only
+ * when the maintained lookup has more than one relevant official with that surname.
  */
 export function matchesOfficeholderName(submittedAnswer: string, officeholders: string[]) {
   const submitted = normalizeCivicsAnswer(submittedAnswer);
@@ -226,11 +268,13 @@ export function matchesOfficeholderName(submittedAnswer: string, officeholders: 
   const matchingFullNames = officeholders.filter((name) => normalizeCivicsAnswer(name) === submitted);
   if (matchingFullNames.length) return true;
 
-  const matchingLastNames = officeholders.filter((name) => {
+  // A surname is not always a single word. "Van Hollen", "Blunt Rochester" and "King-Hinds" all
+  // have to be accepted on their own, so any trailing run of words in the official name counts.
+  const matchingSurnames = officeholders.filter((name) => {
     const parts = normalizeCivicsAnswer(name).split(' ');
-    return parts[parts.length - 1] === submitted;
+    return parts.slice(1).some((_, index) => parts.slice(index + 1).join(' ') === submitted);
   });
 
-  // A last name is accepted only if it identifies one officeholder in this question's lookup.
-  return matchingLastNames.length === 1;
+  // A surname is accepted only if it identifies one officeholder in this question's lookup.
+  return matchingSurnames.length === 1;
 }

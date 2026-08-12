@@ -23,12 +23,18 @@
     hasRapport = true,
     isExtreme = false,
     resolveDynamicAnswer,
+    dynamicAnswer = null,
+    paused = false,
     onskipdynamic,
     oncomplete,
     onclose
   }: {
     encounter: Encounter;
     question: CivicsQuestion;
+    /** The resolved current answer for a dynamic question. Its stored answer is proctor boilerplate. */
+    dynamicAnswer?: string | null;
+    /** Holds the clock while a modal is open over the question, such as the district lookup. */
+    paused?: boolean;
     attempt: number;
     inventory: Inventory;
     onuseitem: (item: PowerUpId) => boolean;
@@ -70,13 +76,13 @@
   let displayedPrompt = $derived(encounter.mode === 'mumbled'
     ? question.prompt.split(/(\s+)/).map((part, index) => index % (rapportTier === 'friendly' ? 5 : 3) === 0 && part.trim().length > 3 ? '...' : part).join('')
     : question.prompt);
-  let isCurrentOfficeholderQuestion = $derived([23, 30, 38, 39, 57, 61].includes(question.id));
+  let isCurrentOfficeholderQuestion = $derived([23, 29, 30, 38, 39, 57, 61].includes(question.id));
 
   function startTimer() {
     stopTimer();
     secondsRemaining = (encounter.mode === 'short' || encounter.mode === 'mumbled') ? (rapportTier === 'friendly' ? 75 : rapportTier === 'hostile' ? 45 : 60) : 30;
     timer = setInterval(() => {
-      if (coffeePaused) return;
+      if (coffeePaused || paused) return;
       secondsRemaining -= 1;
       if (secondsRemaining <= 0) {
         stopTimer();
@@ -153,12 +159,12 @@
     {:else if stage === 'question'}
       <div class="question-heading">
         <span>USCIS CIVICS · QUESTION {question.id} · ATTEMPT {attempt}</span>
-       <strong>{encounter.mode === 'matrix' ? '12-CHOICE' : encounter.mode === 'multiple' ? `${choiceCount}-CHOICE` : encounter.mode === 'mumbled' ? 'MUMBLED RESPONSE' : 'OPEN RESPONSE'} · {coffeePaused ? 'COFFEE BREAK' : `${secondsRemaining}s`}</strong>
+       <strong>{encounter.mode === 'matrix' ? '12-CHOICE' : encounter.mode === 'multiple' ? `${choiceCount}-CHOICE` : encounter.mode === 'mumbled' ? 'MUMBLED RESPONSE' : 'OPEN RESPONSE'} · {paused ? 'DISTRICT LOOKUP' : coffeePaused ? 'COFFEE BREAK' : `${secondsRemaining}s`}</strong>
       </div>
        <h3 class:mumbled-prompt={encounter.mode === 'mumbled'}>{displayedPrompt}</h3>
        {#if rapportResult}<p class="rapport-result">{rapportResult}</p>{/if}
        {#if isCurrentOfficeholderQuestion}<p class="hint"><strong>Current-official answer tip:</strong> A last name is usually enough. Include a first name only if more than one relevant official shares that last name. Last verified: {officeholderDataLastVerified}.</p>{/if}
-      {#if question.id === 29}<button class="item-use" onclick={onskipdynamic}>FIND OR SKIP YOUR REPRESENTATIVE QUESTION</button>{/if}
+      {#if question.id === 29}<button class="item-use" onclick={onskipdynamic}>NARROW TO MY DISTRICT, OR SKIP THIS QUESTION</button>{/if}
        {#if (encounter.mode === 'short' && rapportTier !== 'hostile') || (encounter.mode === 'mumbled' && rapportTier === 'friendly')}<p class="hint">{encounter.hint ?? 'Context hint: identify the constitutional or civic principle at the heart of the question.'}</p>{/if}
        {#if encounter.mode === 'short' && rapportTier === 'friendly'}<p class="hint">Friendly Rapport: you have extra time for this answer.</p>{/if}
       {#if hearingAidUsed}<p class="hint">Hearing Aid active: the question text is as clear as possible.</p>{/if}
@@ -183,7 +189,7 @@
       <div class:wrong={!correct} class="feedback">
   <span class="feedback-icon">{correct ? '✓' : '×'}</span>
         <h3>{correct ? 'SUPPORT SECURED' : 'NOT QUITE'}</h3>
-        <p>{correct ? `${civicsConfirmation(question)} ${dialogue.success}` : `One accepted answer is “${question.acceptedAnswers[0]}.” ${attempt === 1 ? dialogue.firstMiss : dialogue.locked}`}</p>
+        <p>{correct ? `${civicsConfirmation(question, dynamicAnswer ?? undefined)} ${dialogue.success}` : `One accepted answer is “${dynamicAnswer ?? question.acceptedAnswers[0]}.” ${attempt === 1 ? dialogue.firstMiss : dialogue.locked}`}</p>
         {#if !correct && civicsStudyNotes[question.id]}<p class="study-explanation"><strong>Study note:</strong> {civicsStudyNotes[question.id]}</p>{/if}
         {#if correct}<strong>+{encounter.votes} VOTES · +{encounter.mode === 'multiple' ? 15 : encounter.mode === 'short' ? 25 : 40} INF</strong>{/if}
       </div>

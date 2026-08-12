@@ -1673,6 +1673,6 @@ const specificConfirmations: Record<number, string> = {
   128: 'Correct. Veterans Day honors people who have served in the U.S. military.'
 };
 
-export function civicsConfirmation(question: CivicsQuestion) {
-  return specificConfirmations[question.id] ?? `Correct. “${question.acceptedAnswers[0]}” is an accepted answer.`;
+export function civicsConfirmation(question: CivicsQuestion, resolvedAnswer?: string) {
+  return specificConfirmations[question.id] ?? `Correct. “${resolvedAnswer ?? question.acceptedAnswers[0]}” is an accepted answer.`;
 }

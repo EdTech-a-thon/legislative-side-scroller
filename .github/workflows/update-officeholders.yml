@@ -1,28 +1,68 @@
-name: Update Current Officeholders
+name: Update Current Officeholders and Representatives
 
 on:
   schedule:
-    # GitHub Actions schedules use UTC. These run on the requested calendar dates.
-    - cron: '0 12 28 1 *'
-    - cron: '0 12 28 8 *'
+    # GitHub Actions schedules use UTC. Runs on the 1st of each month.
+    # Monthly also keeps the schedule alive: GitHub disables scheduled workflows
+    # after 60 days of repository inactivity.
+    # The offset from the top of the hour avoids the queue spike that delays
+    # (and sometimes drops) runs scheduled at :00.
+    - cron: '17 12 1 * *'
   workflow_dispatch:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   update:
     runs-on: ubuntu-latest
+    env:
+      BRANCH: officeholder-updates
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
       - run: bun run update:officeholders
-      - run: |
+      - run: bun run update:representatives
+
+      # `main` is protected by the `protect-main` ruleset, which has no bypass
+      # actors, so this cannot push to `main` directly. It pushes a branch and
+      # opens a pull request instead. `open-pr.yml` does not cover this case:
+      # pushes made with GITHUB_TOKEN do not trigger workflows.
+      - name: Open a pull request when the data changed
+        run: |
           if git diff --quiet; then
+            echo "Officeholder and representative data is unchanged." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
+
           git config user.name "Capitol Hill Crawler updater"
           git config user.email "actions@github.com"
-          git add src/officeholders.ts
-          git commit -m "Update current officeholder data"
-          git push
+          # Recreated from the just-checked-out main each run, so the branch
+          # never carries a stale base that conflicts on merge.
+          git checkout -B "$BRANCH"
+          git add src/officeholders.ts src/representatives.ts src/zip-districts.ts
+          git commit -m "Update current officeholder and representative data"
+          git push --force origin "$BRANCH"
+
+          # Checked rather than `|| true`-ed, so that a genuine failure (most
+          # likely "GitHub Actions is not permitted to create or approve pull
+          # requests") fails the run instead of passing silently with no PR.
+          if gh pr view "$BRANCH" --json url >/dev/null 2>&1; then
+            echo "A pull request for $BRANCH is already open; pushed to it."
+          else
+            gh pr create \
+              --base main \
+              --head "$BRANCH" \
+              --title "Update current officeholder and representative data" \
+              --body "Automated refresh from the Senate, NGA, congress-legislators and ZIP-to-district sources. Merging updates \`officeholderDataLastVerified\` and \`representativeDataLastVerified\`, which the game uses to decide whether current-officeholder questions are safe to ask.
+
+**A January run needs a closer look.** A new Congress is seated in January, and redistricting moves ZIP codes between districts. Confirm that \`src/representatives.ts\` and \`src/zip-districts.ts\` describe the *currently seated* Congress, not the map used at the last election, before merging."
+          fi
+
+          # Requesting a review emails the reviewer even if they only watch the
+          # repository for "Participating and @mentions".
+          gh pr edit "$BRANCH" --add-reviewer DuncanAJohnson || true
+
+          gh pr view "$BRANCH" --json url --jq .url >> "$GITHUB_STEP_SUMMARY" || true
