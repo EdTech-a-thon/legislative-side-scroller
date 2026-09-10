@@ -2,7 +2,7 @@
 // This file is automatically refreshed on the 1st of each month. Do not edit it by hand.
 // Logic that depends on this data belongs in a separate module; this file is overwritten wholesale.
 
-export const officeholderDataLastVerified = "August 12, 2026";
+export const officeholderDataLastVerified = "September 1, 2026";
 
 export const senatorsByState: Record<string, string[]> = {
   "MD": [

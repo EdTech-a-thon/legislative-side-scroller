@@ -4,7 +4,7 @@
 
 export type Representative = { district: number; name: string };
 
-export const representativeDataLastVerified = "August 12, 2026";
+export const representativeDataLastVerified = "September 1, 2026";
 
 /** Keyed by two-letter code. District 0 is an at-large seat, a Delegate, or the Resident Commissioner. */
 export const representativesByState: Record<string, Representative[]> = {
